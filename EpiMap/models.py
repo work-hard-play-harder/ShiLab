@@ -56,7 +56,6 @@ class Model(db.Model):
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     job_id = db.Column(db.Integer, db.ForeignKey('job.id'))
-    # print('test')
 
     def __repr__(self):
         return '<Repository {}>'.format((self.algorithm))
