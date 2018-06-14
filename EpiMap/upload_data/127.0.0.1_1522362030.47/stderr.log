@@ -1,4 +1,0 @@
-Error in if (corBy > lambda_Max) lambda_Max = corBy : 
-  missing value where TRUE/FALSE needed
-Calls: EBelasticNet.GaussianCV
-Execution halted
