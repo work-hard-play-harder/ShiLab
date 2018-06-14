@@ -22,13 +22,13 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/webserver/<userid>', methods=['GET', 'POST'])
+@app.route('/webserver', methods=['GET', 'POST'])
 @login_required
-def webserver(userid):
-    user = User.query.filter_by(id=userid).first_or_404()
+def webserver():
+    userid = current_user.id
     if request.method == 'POST':
         # check if the post request has the file part
-        jobname=request.form['jobname']
+        jobname = request.form['jobname']
 
         print(request.files)
         if 'input-x' not in request.files:
@@ -62,7 +62,7 @@ def webserver(userid):
             return redirect(url_for('result', userid=userid))
         else:
             flash("Only <i>.txt</i> and <i>.csv</i> file type are valid!")
-    return render_template('webserver.html', user=user)
+    return render_template('webserver.html')
 
 
 @app.route('/about')
@@ -164,8 +164,8 @@ def jobs(userid):
 
 @app.route('/repository/')
 def repository():
-    #user = User.query.filter_by(id=userid).first_or_404()
-    #jobs = user.jobs.all()
+    # user = User.query.filter_by(id=userid).first_or_404()
+    # jobs = user.jobs.all()
     return render_template('jobs.html')
 
 
