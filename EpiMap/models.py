@@ -35,9 +35,11 @@ class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     jobname = db.Column(db.String(64))
     timestamp = db.Column(db.DateTime, default=datetime.now(timezone.utc))
-    addition = db.Column(db.String(280))
+    description = db.Column(db.String(280))
+    selected_algorithm=db.Column(db.String(64), nullable=False) # format like algorithm1|algorithm2|algorithm3
     status = db.Column(db.Integer, nullable=False, default=0)  # 0 waiting, 1 running, 2 done, 3 delete
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
     models = db.relationship('Model', backref='job', lazy='dynamic')
 
     def __repr__(self):

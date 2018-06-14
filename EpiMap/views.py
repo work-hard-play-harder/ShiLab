@@ -10,9 +10,9 @@ from bokeh.embed import components
 from bokeh.resources import INLINE
 
 # customized functions
-from EpiMap.run_scripts import call_scripts, create_user_folder
+from EpiMap.run_scripts import call_scripts, create_job_folder
 from EpiMap.create_boken_figure import create_pca_figure
-from EpiMap.models import User
+from EpiMap.models import User, Job, Model
 from EpiMap.safe_check import is_safe_url, is_allowed_file
 
 
@@ -25,43 +25,43 @@ def index():
 @app.route('/webserver', methods=['GET', 'POST'])
 @login_required
 def webserver():
-    userid = current_user.id
     if request.method == 'POST':
-        # check if the post request has the file part
+        # get jobname adn description
         jobname = request.form['jobname']
-
-        print(request.files)
-        if 'input-x' not in request.files:
-            flash("Upload your training data")
-            return redirect(request.url)
-        if 'input-y' not in request.files:
-            flash("Upload your training label")
-            return redirect(request.url)
+        description = request.form['description']
 
         input_x = request.files['input-x']
         input_y = request.files['input-y']
-
-        # get checkbox value
-        methods = request.form.getlist('methods')
-        print(len(methods))
-        if len(methods) == 0:
-            flash("You must choose at least one method!")
-            return redirect(url_for('webserver', userid=current_user.id))
-
         if input_x and input_y and is_allowed_file(input_x.filename) and is_allowed_file(input_y.filename):
             input_x_filename = secure_filename(input_x.filename)
             input_y_filename = secure_filename(input_y.filename)
 
+            if input_x_filename == input_y_filename:
+                flash("Training data have the same file name.")
+                return redirect(request.url)
+
+            # get checkbox value
+            methods = request.form.getlist('methods')
+
+            if len(methods) == 0:
+                flash("You must choose at least one method!")
+                return redirect(request.url)
+
+            job = Job(jobname=jobname, description=description, status=0, user_id=current_user.id)
+            db.session.add(job)
+            db.session.commit()
+
             # get user ip and system time
-            user_dir = create_user_folder(app.config['UPLOAD_FOLDER'], userID=userid)
-            input_x.save(os.path.join(user_dir, input_x_filename))
-            input_y.save(os.path.join(user_dir, input_y_filename))
+            job_dir = create_job_folder(app.config['UPLOAD_FOLDER'], userid=current_user.id, jobid=job.id)
+
+            input_x.save(os.path.join(job_dir, input_x_filename))
+            input_y.save(os.path.join(job_dir, input_y_filename))
             # flash("File has been upload!")
 
-            # call_scripts(methods, user_dir, input_x_filename, input_y_filename)
-            return redirect(url_for('result', userid=userid))
+            call_scripts(methods, job_dir, input_x_filename, input_y_filename)
+            return redirect(url_for('result', userid=current_user.id))
         else:
-            flash("Only <i>.txt</i> and <i>.csv</i> file type are valid!")
+            flash("Only .txt and .csv file types are valid!")
     return render_template('webserver.html')
 
 
@@ -146,18 +146,17 @@ def login():
     return render_template('login.html', title='Login')
 
 
-@app.route('/profile/<userid>')
+@app.route('/user/profile')
 @login_required
-def profile(userid):
-    print(userid)
-    user = User.query.filter_by(id=userid).first_or_404()
+def profile():
+    user = User.query.filter_by(id=current_user.id).first_or_404()
     return render_template('profile.html', user=user)
 
 
-@app.route('/jobs/<userid>')
+@app.route('/user/jobs')
 @login_required
-def jobs(userid):
-    user = User.query.filter_by(id=userid).first_or_404()
+def jobs():
+    user = User.query.filter_by(id=current_user.id).first_or_404()
     jobs = user.jobs.all()
     return render_template('jobs.html', user=user, jobs=jobs)
 
