@@ -1,4 +1,4 @@
-from datetime import datetime,timezone
+from datetime import datetime, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
@@ -11,7 +11,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64))
     email = db.Column(db.String(120), index=True, unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.now(timezone.utc))
+    timestamp = db.Column(db.DateTime, default=datetime.now(timezone.utc))
 
     jobs = db.relationship('Job', backref='author', lazy='dynamic')
     models = db.relationship('Model', backref='author', lazy='dynamic')
@@ -33,10 +33,10 @@ def user_loader(id):
 
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    jobname = db.Column(db.String(140))
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.now(timezone.utc))
+    jobname = db.Column(db.String(64))
+    timestamp = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     addition = db.Column(db.String(280))
-
+    status = db.Column(db.Integer, nullable=False, default=0)  # 0 waiting, 1 running, 2 done, 3 delete
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     models = db.relationship('Model', backref='job', lazy='dynamic')
 
@@ -46,13 +46,15 @@ class Job(db.Model):
 
 class Model(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    algorithm = db.Column(db.String(140), index=True)
-    performance = db.Column(db.String(140))
+    algorithm = db.Column(db.String(64))
+    parameters = db.Column(db.String(64))
+    performance = db.Column(db.String(64))
     description = db.String(db.String(280))
+    status = db.Column(db.Integer, nullable=False, default=0)  # 0 waiting, 1 running, 2 done, 3 delete
     recall_times = db.Column(db.Integer)
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.now(timezone.utc))
-    running_time = db.Column(db.Integer)
-    is_shared=db.Column(db.Boolean)
+    training_time = db.Column(db.Integer)
+    timestamp = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    is_shared = db.Column(db.Boolean)
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     job_id = db.Column(db.Integer, db.ForeignKey('job.id'))
