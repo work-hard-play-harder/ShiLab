@@ -21,27 +21,28 @@ def create_job_folder(upload_folder='', userid=None, jobid=None):
     return job_dir
 
 
-def call_scripts(methods, job_dir='', data_file_x='', data_file_y=''):
+def call_scripts(methods, params=None, job_dir='', x_filename='', y_filename=''):
     print(methods)
     for method in methods:
         print(method)
         if method == 'EBEN':
             with open(os.path.join(job_dir, 'EBEN.stdout'), 'w') as EBEN_stdout, \
                     open(os.path.join(job_dir, 'EBEN.stderr'), 'w') as EBEN_stderr:
-                subprocess.Popen(['script', app.config['EBEN_SCRIPT'], job_dir, data_file_x, data_file_y],
+                subprocess.Popen(['Rscript', app.config['EBEN_SCRIPT'], job_dir, x_filename, y_filename],
                                  stdout=EBEN_stdout,
                                  stderr=EBEN_stderr)
 
         if method == 'LASSO':
             with open(os.path.join(job_dir, 'LASSO.stdout'), 'w') as LASSO_stdout, \
                     open(os.path.join(job_dir, 'LASSO.stderr'), 'w') as LASSO_stderr:
-                subprocess.Popen(['script', app.config['LASSO_SCRIPT'], job_dir, data_file_x, data_file_y],
-                                 stdout=LASSO_stdout,
-                                 stderr=LASSO_stderr)
+                subprocess.Popen(
+                    ['Rscript', app.config['LASSO_SCRIPT'], params['alpha'], job_dir, x_filename, y_filename],
+                    stdout=LASSO_stdout,
+                    stderr=LASSO_stderr)
 
         if method == 'Matrix_eQTL':
             with open(os.path.join(job_dir, 'Matrix_eQTL.R.stdout'), 'w') as Matrix_eQTL_stdout, \
                     open(os.path.join(job_dir, 'Matrix_eQTL.R.stderr'), 'w') as Matrix_eQTL_stderr:
-                subprocess.Popen(['script', app.config['MATRIX_EQTL_SCRIPT'], job_dir, data_file_x, data_file_y],
+                subprocess.Popen(['Rscript', app.config['MATRIX_EQTL_SCRIPT'], job_dir, x_filename, y_filename],
                                  stdout=Matrix_eQTL_stdout,
                                  stderr=Matrix_eQTL_stderr)

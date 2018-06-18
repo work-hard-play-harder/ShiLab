@@ -26,22 +26,19 @@ def index():
 @login_required
 def webserver():
     if request.method == 'POST':
-        # get jobname adn description
         jobname = request.form['jobname']
         description = request.form['description']
+        methods = request.form.getlist('methods')
 
         input_x = request.files['input-x']
         input_y = request.files['input-y']
         if input_x and input_y and is_allowed_file(input_x.filename) and is_allowed_file(input_y.filename):
-            input_x_filename = secure_filename(input_x.filename)
-            input_y_filename = secure_filename(input_y.filename)
+            x_filename = secure_filename(input_x.filename)
+            y_filename = secure_filename(input_y.filename)
 
-            if input_x_filename == input_y_filename:
+            if x_filename == y_filename:
                 flash("Training data have the same file name.")
                 return redirect(request.url)
-
-            # get checkbox value
-            methods = request.form.getlist('methods')
 
             if len(methods) == 0:
                 flash("You must choose at least one method!")
@@ -50,16 +47,14 @@ def webserver():
             job = Job(jobname=jobname, description=description, status=0, user_id=current_user.id)
             db.session.add(job)
             db.session.commit()
-
-            # get user ip and system time
             job_dir = create_job_folder(app.config['UPLOAD_FOLDER'], userid=current_user.id, jobid=job.id)
 
-            input_x.save(os.path.join(job_dir, input_x_filename))
-            input_y.save(os.path.join(job_dir, input_y_filename))
+            input_x.save(os.path.join(job_dir, x_filename))
+            input_y.save(os.path.join(job_dir, y_filename))
             # flash("File has been upload!")
-
-            call_scripts(methods, job_dir, input_x_filename, input_y_filename)
-            return redirect(url_for('result', userid=current_user.id))
+            params = {'alpha': '1'}
+            call_scripts(methods, params, job_dir, x_filename, y_filename)
+            return redirect(url_for('result', jobid=job.id, methods=methods))
         else:
             flash("Only .txt and .csv file types are valid!")
     return render_template('webserver.html')
@@ -68,6 +63,20 @@ def webserver():
 @app.route('/about')
 def about():
     return render_template('about.html')
+
+
+@app.route('/result/<jobid>/<methods>')
+@login_required
+def result(jobid, methods):
+    job_dir = os.path.join(app.config['UPLOAD_FOLDER'],
+                           '_'.join(['userid', str(current_user.id)]),
+                           '_'.join(['jobid', str(jobid)]))
+
+    if not os.path.exists(job_dir):
+        flash("Job doesn't exist!", category='error')
+        return redirect(request.url)
+
+    return render_template('result.html', jobid=jobid, job_dir=job_dir, methods=methods)
 
 
 @app.route('/pca', methods=['GET', 'POST'])
@@ -87,19 +96,6 @@ def pca():
                            css_resources=INLINE.render_css())
 
     # return render_template('pca.html', userID=userID, mpld3=mpld3.fig_to_html(fig))
-
-
-@app.route('/result/<userid>', methods=['GET', 'POST'])
-def result(userid):
-    if request.method == 'GET':
-        user_dir = os.path.join(app.config['UPLOAD_FOLDER'], '_'.join([userid, current_user.username]))
-        result_file = os.path.join(user_dir, 'EBEN_result.txt')
-        if os.path.isfile(result_file):
-            result_lines = []
-            with open(result_file) as infile:
-                result_lines = infile.readlines()
-            return render_template('result.html', userID=userid, result_lines=result_lines)
-    return render_template('processing.html', userID=userid)
 
 
 @app.route('/signup', methods=['GET', 'POST'])

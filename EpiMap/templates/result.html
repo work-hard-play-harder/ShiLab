@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 {% extends "layout.html" %}
 {% block content %}
-    <div class="container" style="background-color:whitesmoke">
-        <main>
-            <section class="anchor" id="Result">
-                <h2>Result</h2>
-                <p>This page show the result output by various models.</p>
-                <p>The job submitted by {{ user_dir }} is finished, and the results are shown in following </p>
+    <div>
+        <h2>Result</h2>
+        <hr>
+        <p>This page show the result output by various models.</p>
+        <p>The job submitted by {{ current_user.username }} is finished, and the results are shown in following </p>
 
-                <pre>
-				{% for i in result_lines %}
-                    {{ i.strip('\n') }}<br>
-                {% endfor %}
-			</pre>
+        {{ jobid }}
+        {{ methods }}
 
-            </section>
-        </main>
- 
+
+
+        {% if 'LASSO' in methods %}
+            <h4>LASSO result</h4>
+            <hr>
+            {{ job_dir }}
+            {{ job_dir+'/lasso.png' }}
+
+            <img src="{{ job_dir+'/lasso.png' }}">
+        {% endif %}
     </div>
 {% endblock %}
