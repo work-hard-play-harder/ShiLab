@@ -3,14 +3,14 @@ import time
 from EpiMap import app, db
 
 # third-parties packages
-from flask import render_template, request, redirect, url_for, flash, make_response, abort
+from flask import render_template, request, redirect, url_for, flash, make_response, abort, send_file
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 from bokeh.embed import components
 from bokeh.resources import INLINE
 
 # customized functions
-from EpiMap.run_scripts import call_scripts, create_job_folder
+from EpiMap.run_scripts import call_scripts, create_job_folder, check_job_status
 from EpiMap.create_boken_figure import create_pca_figure
 from EpiMap.models import User, Job, Model
 from EpiMap.safe_check import is_safe_url, is_allowed_file
@@ -54,7 +54,7 @@ def webserver():
             # flash("File has been upload!")
             params = {'alpha': '1'}
             call_scripts(methods, params, job_dir, x_filename, y_filename)
-            return redirect(url_for('result', jobid=job.id, methods=methods))
+            return redirect(url_for('processing', jobid=job.id, methods=methods))
         else:
             flash("Only .txt and .csv file types are valid!")
     return render_template('webserver.html')
@@ -63,6 +63,18 @@ def webserver():
 @app.route('/about')
 def about():
     return render_template('about.html')
+
+
+@app.route('/processing/<jobid>/<methods>')
+@login_required
+def processing(jobid, methods):
+    job = Job.query.filter_by(id=jobid).first_or_404()
+    print('job.status',job.status)
+    if job.status == 2:
+        return redirect(url_for('result', jobid=job.id, methods=methods))
+    else:
+        check_job_status(jobid, methods)
+        return render_template('processing.html', jobid=job.id, methods=methods)
 
 
 @app.route('/result/<jobid>/<methods>')
@@ -75,8 +87,23 @@ def result(jobid, methods):
     if not os.path.exists(job_dir):
         flash("Job doesn't exist!", category='error')
         return redirect(request.url)
-
     return render_template('result.html', jobid=jobid, job_dir=job_dir, methods=methods)
+
+
+@app.route('/show_pic/<jobid>/<filename>')
+@login_required
+def show_pic(jobid, filename):
+    job_dir = os.path.join(app.config['UPLOAD_FOLDER'],
+                           '_'.join(['userid', str(current_user.id)]),
+                           '_'.join(['jobid', str(jobid)]))
+    if not os.path.exists(job_dir):
+        flash("Job doesn't exist!", category='error')
+        return redirect(request.url)
+
+    try:
+        return send_file(os.path.join(job_dir, filename), attachment_filename=filename)
+    except Exception as e:
+        return str(e)
 
 
 @app.route('/pca', methods=['GET', 'POST'])

@@ -2,7 +2,10 @@ import os
 import shlex
 import subprocess
 
-from EpiMap import app
+from flask_login import current_user
+
+from EpiMap import app, db
+from EpiMap.models import User, Job, Model
 
 
 def create_job_folder(upload_folder='', userid=None, jobid=None):
@@ -22,7 +25,6 @@ def create_job_folder(upload_folder='', userid=None, jobid=None):
 
 
 def call_scripts(methods, params=None, job_dir='', x_filename='', y_filename=''):
-    print(methods)
     for method in methods:
         print(method)
         if method == 'EBEN':
@@ -46,3 +48,37 @@ def call_scripts(methods, params=None, job_dir='', x_filename='', y_filename='')
                 subprocess.Popen(['Rscript', app.config['MATRIX_EQTL_SCRIPT'], job_dir, x_filename, y_filename],
                                  stdout=Matrix_eQTL_stdout,
                                  stderr=Matrix_eQTL_stderr)
+
+
+def check_job_status(jobid, methods):
+    # Every method should output a finished sign when it finished.
+    job_dir = os.path.join(app.config['UPLOAD_FOLDER'],
+                           '_'.join(['userid', str(current_user.id)]),
+                           '_'.join(['jobid', str(jobid)]))
+    job = Job.query.filter_by(id=jobid).first_or_404()
+
+    # updating job status as running
+    if job.status == 0:
+        job.status = 1
+        db.session.add(job)
+        db.session.commit()
+
+    flag = 0  # number of finished methods
+    filelist = os.listdir(job_dir)
+    for filename in filelist:
+        if filename.endswith('.stdout') and os.stat(os.path.join(job_dir, filename)).st_size != 0:
+            with open(os.path.join(job_dir, filename), 'r') as fin:
+                # find finished flag in last line
+                last_line = fin.readlines()[-1]
+                if 'Done!' in last_line:
+                    flag += 1
+
+    # updating job status as done
+    vars_locals=locals()
+    exec('methods='+methods,globals(),vars_locals) # tricks of executing python code string
+    methods=vars_locals['methods']
+    if flag == len(methods):
+        print('job.status', job.status)
+        job.status = 2
+        db.session.add(job)
+        db.session.commit()
