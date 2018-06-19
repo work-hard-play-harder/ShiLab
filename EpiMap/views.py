@@ -142,7 +142,7 @@ def signup():
         db.session.commit()
         login_user(user)
         # flash(message='Successful! You will be redirected to Home page.', category='message')
-        time.sleep(5)
+        # time.sleep(5)
         return redirect(url_for('index'))
 
     return render_template('signup.html')
@@ -181,7 +181,8 @@ def profile():
 def jobs():
     user = User.query.filter_by(id=current_user.id).first_or_404()
     jobs = user.jobs.all()
-    return render_template('jobs.html', user=user, jobs=jobs)
+    print(jobs[0].timestamp)
+    return render_template('jobs.html', jobs=jobs)
 
 
 @app.route('/repository/')

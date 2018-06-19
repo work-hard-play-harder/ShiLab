@@ -1,6 +1,7 @@
 import os
 import shlex
 import subprocess
+from datetime import datetime, timezone
 
 from flask_login import current_user
 
@@ -80,5 +81,6 @@ def check_job_status(jobid, methods):
     if flag == len(methods):
         print('job.status', job.status)
         job.status = 2
+        job.running_time=10
         db.session.add(job)
         db.session.commit()

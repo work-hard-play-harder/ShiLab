@@ -13,6 +13,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128))
     timestamp = db.Column(db.DateTime, default=datetime.now(timezone.utc))
 
+
     jobs = db.relationship('Job', backref='author', lazy='dynamic')
     models = db.relationship('Model', backref='author', lazy='dynamic')
 
@@ -36,8 +37,9 @@ class Job(db.Model):
     jobname = db.Column(db.String(64))
     timestamp = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     description = db.Column(db.String(280))
-    selected_algorithm=db.Column(db.String(64), nullable=False) # format like algorithm1|algorithm2|algorithm3
-    status = db.Column(db.Integer, nullable=False, default=0)  # 0 waiting, 1 running, 2 done, 3 delete
+    selected_algorithm=db.Column(db.String(64)) # format like algorithm1|algorithm2|algorithm3
+    status = db.Column(db.Integer, default=0)  # 0 waiting, 1 running, 2 done, 3 delete
+    running_time=db.Column(db.Integer)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     models = db.relationship('Model', backref='job', lazy='dynamic')

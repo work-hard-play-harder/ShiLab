@@ -14,62 +14,29 @@
 {% block content %}
     <div>
         <h2>Jobs</h2>
-        <p>This page lists all submitted jobs.</p>
+        <p>This page lists all submitted jobs. There are total {{ jobs|length }} jobs</p>
         <hr>
+
         <table class="table table-hover table-condense">
             <thead>
             <tr class="bg-white">
                 <th>#</th>
                 <th>Name</th>
-                <th>Method</th>
-                <th>Performance</th>
+                <th>Details</th>
                 <th>Submit time</th>
                 <th>Running time</th>
-                <th>Recall times</th>
-                <th>Details</th>
             </tr>
             </thead>
             <tbody>
-            <tr class="bg-info">
-                <td>1</td>
-                <td>Epistasis</td>
-                <td>LASSO</td>
-                <td>MSE=0.2; r2=0.8</td>
-                <td>Jun. 12 2018</td>
-                <td>100 mins</td>
-                <td>3</td>
-                <td></td>
-            </tr>
-            <tr class="bg-success">
-                <td>2</td>
-                <td>TWAS</td>
-                <td>EBEN</td>
-                <td>MSE=0.1; r2=0.85</td>
-                <td>Jun. 12 2018</td>
-                <td>110 mins</td>
-                <td>4</td>
-                <td></td>
-            </tr>
-            <tr class="bg-info">
-                <td>3</td>
-                <td>TWAS</td>
-                <td>EBEN</td>
-                <td>MSE=0.1; r2=0.85</td>
-                <td>Jun. 12 2018</td>
-                <td>110 mins</td>
-                <td>4</td>
-                <td></td>
-            </tr>
-            <tr class="bg-success">
-                <td>4</td>
-                <td>TWAS</td>
-                <td>EBEN</td>
-                <td>MSE=0.1; r2=0.85</td>
-                <td>Jun. 12 2018</td>
-                <td>110 mins</td>
-                <td>4</td>
-                <td></td>
-            </tr>
+            {% for job in jobs %}
+                <tr class="bg-info">
+                    <td>{{ loop.index }}</td>
+                    <td>{{ job.jobname }}</td>
+                    <td>{{ job.description }}</td>
+                    <td>{{ job.timestamp}} </td>
+                    <td>{{ job.running_time }}</td>
+                </tr>
+            {% endfor %}
             </tbody>
         </table>
         <nav aria-label="...">
