@@ -66,7 +66,6 @@ def webserver():
                 model = Model(algorithm=method, parameters=params_str,is_shared=True, user_id=current_user.id, job_id=job.id)
                 db.session.add(model)
             db.session.commit()
-
             return redirect(url_for('processing', jobid=job.id, methods=methods))
         else:
             flash("Only .txt and .csv file types are valid!")
@@ -200,7 +199,7 @@ def jobs():
 
 @app.route('/repository/')
 def repository():
-    models = Model.query.filter_by(is_shared=True).all()
+    models = Model.query.filter_by(is_shared=True).order_by(desc(Model.timestamp)).all()
     print(models)
     jobnames=[]
     usernames=[]
@@ -210,7 +209,7 @@ def repository():
         username=User.query.filter_by(id=model.user_id).first_or_404().username
         usernames.append(username)
 
-    # jobs = user.jobs.all()
+
     return render_template('repository.html', models=models,jobnames=jobnames,usernames=usernames)
 
 
