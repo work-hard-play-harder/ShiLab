@@ -11,6 +11,7 @@
     {% block scripts %}
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script src="/static/js/moment.js"></script>
     {% endblock %}
     {% block styles %}
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -54,6 +55,7 @@
         <ul class="nav navbar-nav">
             <li><a class="active" href="{{ url_for('index') }}">Home</a></li>
             <li><a href="{{ url_for('webserver') }}">Web Server</a></li>
+            <li><a href="{{ url_for('repository') }}">Model Repository</a></li>
             <li><a href="#">Help</a></li>
             <li><a href="{{ url_for('about') }}">About</a></li>
         </ul>
@@ -76,7 +78,6 @@
                         </li>
                     </ul>
                 </li>
-
             {% endif %}
         </ul>
     </div>

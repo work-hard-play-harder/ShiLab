@@ -25,8 +25,7 @@ def create_job_folder(upload_folder='', userid=None, jobid=None):
     return job_dir
 
 
-def call_scripts(methods, params=None, job_dir='', x_filename='', y_filename=''):
-    for method in methods:
+def call_scripts(method, params=None, job_dir='', x_filename='', y_filename=''):
         print(method)
         if method == 'EBEN':
             with open(os.path.join(job_dir, 'EBEN.stdout'), 'w') as EBEN_stdout, \
@@ -75,12 +74,15 @@ def check_job_status(jobid, methods):
                     flag += 1
 
     # updating job status as done
-    vars_locals=locals()
-    exec('methods='+methods,globals(),vars_locals) # tricks of executing python code string
-    methods=vars_locals['methods']
+    vars_locals = locals()
+    exec('methods=' + methods, globals(), vars_locals)  # tricks that execute python code from string
+    methods = vars_locals['methods']
+    print(methods)
+    print(flag)
     if flag == len(methods):
         print('job.status', job.status)
         job.status = 2
-        job.running_time=10
+        # this result is not exactly running time
+        job.running_time = str(datetime.now(timezone.utc).replace(tzinfo=None) - job.timestamp)[:-7]
         db.session.add(job)
         db.session.commit()

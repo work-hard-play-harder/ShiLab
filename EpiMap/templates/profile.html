@@ -3,6 +3,7 @@
 {% block title %}
     <title>Profile | Shilab web server</title>
 {% endblock %}
+
 {% block content %}
     <div>
         <h2>Profile</h2>
@@ -30,7 +31,7 @@
                 <label class="control-label col-sm-2" for="timestamp">Register Date: </label>
                 <div class="col-sm-4 input-group">
                     <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
-                    <input name="timestamp" type="text" class="form-control" id="timestamp" value="{{ user.timestamp }}" readonly="readonly"
+                    <input name="timestamp" type="text" class="form-control" id="timestamp" value={{ user.timestamp }} readonly="readonly"
                            required>
                 </div>
             </div>

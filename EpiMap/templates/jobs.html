@@ -22,19 +22,35 @@
             <tr class="bg-white">
                 <th>#</th>
                 <th>Name</th>
-                <th>Details</th>
+                <th>Description</th>
+                <th>Selected Methods</th>
                 <th>Submit time</th>
-                <th>Running time</th>
+                <th>Running status</th>
             </tr>
             </thead>
             <tbody>
             {% for job in jobs %}
-                <tr class="bg-info">
-                    <td>{{ loop.index }}</td>
-                    <td>{{ job.jobname }}</td>
-                    <td>{{ job.description }}</td>
-                    <td>{{ job.timestamp}} </td>
-                    <td>{{ job.running_time }}</td>
+                {% if loop.index % 2 == 0 %}
+                    <tr class="bg-info">
+                {% else %}
+                    <tr class="bg-success">
+                {% endif %}
+                <td>{{ loop.index0 + 1 }}</td>
+                <td>{{ job.jobname }}</td>
+                <td>{{ job.description }}</td>
+                <td>{{ job.selected_algorithm }}</td>
+                <td>{{ momentjs(job.timestamp).calendar() }} </td>
+
+                <td>{% if job.status==0 %}
+                        Waiting...
+                    {% elif job.status==1 %}
+                        Running...
+                    {% elif job.status==2 %}
+                        Done! Use time: {{ job.running_time }}
+                    {% else %}
+                        Don't exist!
+                    {% endif %}
+                </td>
                 </tr>
             {% endfor %}
             </tbody>

@@ -6,6 +6,7 @@ from EpiMap import app, db
 from flask import render_template, request, redirect, url_for, flash, make_response, abort, send_file
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.utils import secure_filename
+from sqlalchemy import desc
 from bokeh.embed import components
 from bokeh.resources import INLINE
 
@@ -44,16 +45,28 @@ def webserver():
                 flash("You must choose at least one method!")
                 return redirect(request.url)
 
-            job = Job(jobname=jobname, description=description, status=0, user_id=current_user.id)
+            # update Job database
+            job = Job(jobname=jobname, description=description, selected_algorithm=';'.join(methods), status=0,
+                      user_id=current_user.id)
             db.session.add(job)
             db.session.commit()
-            job_dir = create_job_folder(app.config['UPLOAD_FOLDER'], userid=current_user.id, jobid=job.id)
 
+            # upload training data
+            job_dir = create_job_folder(app.config['UPLOAD_FOLDER'], userid=current_user.id, jobid=job.id)
             input_x.save(os.path.join(job_dir, x_filename))
             input_y.save(os.path.join(job_dir, y_filename))
             # flash("File has been upload!")
-            params = {'alpha': '1'}
-            call_scripts(methods, params, job_dir, x_filename, y_filename)
+
+            # call scripts and update Model database
+            print(methods)
+            for method in methods:
+                params = {'alpha': '1'}
+                call_scripts(method, params, job_dir, x_filename, y_filename)
+                params_str = ';'.join([key + '=' + value for key, value in params.items()])
+                model = Model(algorithm=method, parameters=params_str,is_shared=True, user_id=current_user.id, job_id=job.id)
+                db.session.add(model)
+            db.session.commit()
+
             return redirect(url_for('processing', jobid=job.id, methods=methods))
         else:
             flash("Only .txt and .csv file types are valid!")
@@ -69,7 +82,7 @@ def about():
 @login_required
 def processing(jobid, methods):
     job = Job.query.filter_by(id=jobid).first_or_404()
-    print('job.status',job.status)
+    print('job.status', job.status)
     if job.status == 2:
         return redirect(url_for('result', jobid=job.id, methods=methods))
     else:
@@ -180,16 +193,25 @@ def profile():
 @login_required
 def jobs():
     user = User.query.filter_by(id=current_user.id).first_or_404()
-    jobs = user.jobs.all()
-    print(jobs[0].timestamp)
+    jobs = user.jobs.order_by(desc('timestamp')).all()
+    print(jobs)
     return render_template('jobs.html', jobs=jobs)
 
 
 @app.route('/repository/')
 def repository():
-    # user = User.query.filter_by(id=userid).first_or_404()
+    models = Model.query.filter_by(is_shared=True).all()
+    print(models)
+    jobnames=[]
+    usernames=[]
+    for model in models:
+        jobname=Job.query.filter_by(id=model.job_id).first_or_404().jobname
+        jobnames.append(jobname)
+        username=User.query.filter_by(id=model.user_id).first_or_404().username
+        usernames.append(username)
+
     # jobs = user.jobs.all()
-    return render_template('jobs.html')
+    return render_template('repository.html', models=models,jobnames=jobnames,usernames=usernames)
 
 
 @app.route('/logout')
