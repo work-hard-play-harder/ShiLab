@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-{% extends "layout.html" %}
+{% extends "base.html" %}
 {% block metas %}
     {{ super() }}
     <meta http-equiv="refresh" content="5">
@@ -9,9 +9,8 @@
 
         <h2>Your job is currently running ...</h2>
         <hr>
-        <p style="">The jobid <strong><span id="jobname" style="color: purple">{{ jobid }}</span></strong> you submitted
-            is being processed. The results will be shown on your screen when it is finished. You also can retrieve the
-            results by using the link:
+        <p style="">The job you submitted is being processed. The results will be shown on your screen when it is
+            finished. You also can retrieve the results by using the link:
         <p align="center">
             <a href={{ url_for('result', jobid=jobid, methods=methods) }}
                        target="_blank">http://127.0.0.1:5000{{ url_for('result', jobid=jobid, methods=methods) }} </a>

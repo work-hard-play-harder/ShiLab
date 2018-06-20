@@ -63,18 +63,14 @@ def webserver():
                 params = {'alpha': '1'}
                 call_scripts(method, params, job_dir, x_filename, y_filename)
                 params_str = ';'.join([key + '=' + value for key, value in params.items()])
-                model = Model(algorithm=method, parameters=params_str,is_shared=True, user_id=current_user.id, job_id=job.id)
+                model = Model(algorithm=method, parameters=params_str, is_shared=True, user_id=current_user.id,
+                              job_id=job.id)
                 db.session.add(model)
             db.session.commit()
             return redirect(url_for('processing', jobid=job.id, methods=methods))
         else:
             flash("Only .txt and .csv file types are valid!")
     return render_template('webserver.html')
-
-
-@app.route('/about')
-def about():
-    return render_template('about.html')
 
 
 @app.route('/processing/<jobid>/<methods>')
@@ -201,16 +197,15 @@ def jobs():
 def repository():
     models = Model.query.filter_by(is_shared=True).order_by(desc(Model.timestamp)).all()
     print(models)
-    jobnames=[]
-    usernames=[]
+    jobnames = []
+    usernames = []
     for model in models:
-        jobname=Job.query.filter_by(id=model.job_id).first_or_404().jobname
+        jobname = Job.query.filter_by(id=model.job_id).first_or_404().jobname
         jobnames.append(jobname)
-        username=User.query.filter_by(id=model.user_id).first_or_404().username
+        username = User.query.filter_by(id=model.user_id).first_or_404().username
         usernames.append(username)
 
-
-    return render_template('repository.html', models=models,jobnames=jobnames,usernames=usernames)
+    return render_template('repository.html', models=models, jobnames=jobnames, usernames=usernames)
 
 
 @app.route('/logout')
@@ -218,6 +213,16 @@ def repository():
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+
+@app.route('/help')
+def help():
+    return render_template('help.html')
 
 
 @app.errorhandler(404)
