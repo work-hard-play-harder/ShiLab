@@ -14,7 +14,7 @@ from bokeh.resources import INLINE
 from EpiMap.run_scripts import call_scripts, create_job_folder, check_job_status
 from EpiMap.create_boken_figure import create_pca_figure
 from EpiMap.models import User, Job, Model
-from EpiMap.safe_check import is_safe_url, is_allowed_file
+from EpiMap.safety_check import is_safe_url, is_allowed_file
 
 
 @app.route('/')
